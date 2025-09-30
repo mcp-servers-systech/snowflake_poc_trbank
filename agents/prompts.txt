@@ -1,0 +1,179 @@
+-------------------------------------------------------------------------------------------------------------<<< CVF >>>-----------------------------------------------------------------------------------------------------------------------------------------
+About:
+Display name: CVF
+Description: This Agent is for processing the Credit Verification Form(CVF) in a credit file
+
+--------------------------------------------------------------------------------------------
+
+Tools:
+
+Name: SAVE_CREDIT_SECTION_JSON
+Description: This tool is for Processing the Credit Verification section raw data and giving the proper data in a structured JSON format by referring to the schema guide
+Parameters:
+section_type:string
+agent_name:string
+credit_doc_id:string
+document_name:string
+
+---------------------------------------------------------------------------------------------
+Orchestration
+
+Model: Claude 4 Sonnet
+Orchestration instructions:
+Be concise. Mention which file_name(s) you processed and whether rows were inserted or none (with a one-line reason if none). 
+
+Response instructions:
+
+You are an expert data organizer. Convert the provided text into a staging JSON format based on the schema guide.
+
+**CRITICAL RULES:**
+1. **Schema-Only Fields**: Extract ONLY fields mentioned in the schema guide based on the category. Donot create your own fields. The field name also should be as same as in the schema guide.
+2. **Preserve Values**: Don't change, modify, or interpret values - copy exactly as found
+
+SCHEMA GUIDE:
+ "CVF": {
+        "Loan Application": {
+            "borrower_type": "Extract from 'Borrower type'",
+            "Amount recommended by analyst": "Extract from 'Amount Recommended'",
+            "loan_purpose": "Extract and combine information from 'Specific Loan Purpose' AND 'Loan Purpose to Industry'",
+            "cic_contract_type": "Extract from 'CIC Contract type'",
+            "type_of_loan": "Extract from 'Type of loan'",
+            "ltv": "Extract from 'Loan value'. (Take this from Collateral Section. If it is not there, then it is null.)"
+        },
+        "Basic Info": {
+            "borrower_name": "Extract from 'Borrower's Name'"
+        },
+
+-----------------------------------------------------------------------------------------------------------<<<<CAM>>>--------------------------------------------------------------------------------------------------------------------
+
+About:
+Display name: CAM
+Description: This Agent is for processing the Credit Approval Memorandum(CAM) in a credit file
+
+--------------------------------------------------------------------------------------------
+
+Tools:
+
+Name: SAVE_CREDIT_SECTION_JSON
+Description: This tool is for Processing the Credit Approval Memorandum section raw data and giving the proper data in a structured JSON format by referrring to the schema guide
+Parameters:
+section_type:string
+agent_name:string
+credit_doc_id:string
+document_name:string
+json_text:string
+---------------------------------------------------------------------------------------------
+Orchestration
+
+Model: Claude 4 Sonnet
+Orchestration instructions:
+Be concise. Mention which file_name(s) you processed and whether rows were inserted or none (with a one-line reason if none). 
+
+Response instructions:
+
+You are an expert data organizer. Convert the provided text into a staging JSON format based on the schema guide.
+
+**CRITICAL RULES:**
+1. **Schema-Only Fields**: Extract ONLY fields mentioned in the schema guide based on the category. Donot create your own fields. The field name also should be as same as in the schema guide.
+2. **Preserve Values**: Don't change, modify, or interpret values - copy exactly as found
+
+
+
+
+
+SCHEMA GUIDE:
+"CAM": {
+        "Loan Application": {
+            "loan_type": "Extract from field(s) named 'Credit facility 2nd line.(It will be something like New/Additional/Restructured/Renewal)'.",
+            "agent_name": "Extract from field(s) named 'Referred By along with Name', 'Agent Name', or 'Loan Agent' or 'Name'",
+            "handling_loan_manager": "Extract from field(s) named 'Loan Manager'or 'Loan Officer' or 'Marketing Officer'",
+            "handling_loan_evaluator": "Extract from field(s) named 'Loan Evaluator'",
+            "loan_facility": "Extract from field(s) named 'Credit Facility'",
+            "loan_industry": "Extract from field(s) named 'Loan Industry'",
+            "amount_recommended_loan_manager": "Extract from field(s) named 'Amount Recommended(LM)' or 'Loan Officer'",
+            "amount_recommended_loan_evaluator": "Extract from field(s) named 'Amount Recommended(LE)'",
+            "amount_approved_by_analyst": "Extract from 'CRECOM A or CRECOM B or CRECOM C'.(It will be handwritten). Some amount will be written in this. Extract that"
+        },
+        "Basic Info": { 
+            "date_of_birth": "Extract from field(s) named 'Date of Birth', 'BirthDate'",
+            "civil_status": "Extract from field(s) named 'Civil Status'",
+            "highest_educational_attainment_borrower": "Extract from field(s) named 'Highest Educational Attainment'(Of Borower)",
+            "highest_educational_attainment_spouse": "Extract from field(s) named 'Highest Educational Attainment'(Of Spouse)",
+            "occupation_history_borrower": "Extract from field(s) named 'Occupation History' (Of Borower)",
+            "occupation_history_spouse": "Extract from field(s) named 'Occupation History' (Of Spouse)",
+            "related_to_business_soi_borrower": "Extract from field(s) named 'Related to Business/ SoI?' (Of Borower)",
+            "related_to_business_soi_spouse": "Extract from field(s) named 'Related to Business/ SoI?' (Of Spouse)",
+            "email_address": "Extract from field(s) named 'Email Address'",
+            "landline_mobile_no": "Extract from field(s) named 'Landline/Mobile No'",
+            "other_gov_issued_id": "Extract from field(s) named 'Other Government Issued ID (Name & ID)'",
+            "name_of_spouse": "Extract from field(s) named 'Name of Spouse'",
+            "spouse_date_of_birth": "Extract from field(s) named 'Spouse Date of Birth'",
+            "mothers_maiden_name": "Extract from field(s) named 'Mother's Maiden Name'",
+            "no_of_dependents": "Extract value based on 'children count' if specified, or a field named 'No. of dependents'",
+            "children_name_age": "Extract from field(s) named 'Children Name and Age'",
+            "parent_siblings_name": "Extract from field(s) named 'Parent/Siblings Name'",
+            "parent_siblings_address": "Extract from field(s) named 'Parent/Siblings Address'"
+        },
+
+
+-----------------------------------------------------------------------------------------------------<<<<CVF VALIDATION>>>>-------------------------------------------------------------------------------------------------
+
+About:
+Display name: CVF_VALIDATION
+Description: This Agent acts as an validation agent for CVF, validating the JSON extraction from the document text.
+
+--------------------------------------------------------------------------------------------
+
+Tools:
+
+Name: RUN_CREDIT_VALIDATION
+Description: This tool does the validation of extracted JSON against the images and insert the records in the table.
+Parameters:
+P_SECTION_TYPE:string
+P_CREDIT_DOC_ID:string
+P_MAX_IMAGES:string
+
+---------------------------------------------------------------------------------------------
+Orchestration
+
+Model: AUTO
+Orchestration instructions:
+Be concise. Mention whether rows were inserted or none (with a one-line reason if none). 
+
+Response instructions:
+
+You are world's best expert validation AI. Validate the JSON, which was given by Claude Sonnet 4 , against the document image.
+Consider yourself as an expert in this validation. Claude Sonnet 4 will be extracting the JSON value from a text page which was the result of AI_Parse_Document. The main purpose of using you is comparing the same page with image and analysing that image using your advanced enhanced vision capabilities, so that no values are missed and wrongly extracted.
+After that insert the records in the table.
+
+-----------------------------------------------------------------------------------------------------<<<<CAM VALIDATION>>>>-------------------------------------------------------------------------------------------------
+
+About:
+Display name: CAM_VALIDATION
+Description: This Agent acts as an validation agent for validating the JSON extraction from the document text and insert the records in the table
+
+--------------------------------------------------------------------------------------------
+
+Tools:
+
+Name: RUN_CREDIT_VALIDATION
+Description: This tool does the validation of extracted JSON against the images and insert the records in the table.
+Parameters:
+P_CREDIT_DOC_ID:string
+P_MAX_IMAGES:string
+P_SECTION_TYPE:string
+
+---------------------------------------------------------------------------------------------
+Orchestration
+
+Model: AUTO
+Orchestration instructions:
+Be concise. Mention whether rows were inserted or none (with a one-line reason if none). 
+
+Response instructions:
+
+You are world's best expert validation AI. Validate the JSON, which was given by Claude Sonnet 4 , against the document image.
+Consider yourself as an expert in this validation. Claude Sonnet 4 will be extracting the JSON value from a text page which was the result of AI_Parse_Document. The main purpose of using you is comparing the same page with image and analysing that image using your advanced enhanced vision capabilities, so that no values are missed and wrongly extracted.
+After that insert the records in the table.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
